@@ -20,18 +20,34 @@ def _resize(img: NumpyArray, size: _size_2_t) -> NumpyArray:
 
 
 def _normalize(img: NumpyArray, mean: _value_2_or_3_t, std: _value_2_or_3_t, eps=1e-8) -> NumpyArray:
-    mean = np.array(mean).reshape((1, 1, -1))
-    std = np.array(std).reshape((1, 1, -1))
-
     # 2차원 이미지 처리
     if len(img.shape) == 2:
-        # 2차원 이미지는 mean, std도 2개씩 존재해야 한다.
-        if (mean.shape[2] != 2) or (std.shape[2] != 2):
-            raise ValueError("'mean' or 'std' dimension is not matched with H, W type image dimension")
+        if isinstance(mean, float):
+            mean = [mean]
+        if isinstance(std, float):
+            std = [std]
+        mean = np.array(mean)
+        std = np.array(std)
+
+        # 2차원 이미지는 mean, std 의 차원은 1차원이어야 한다.
+        if (mean.shape[-1] != 1) or (std.shape[-1] != 1):
+            raise ValueError("'mean' or 'std' dimension have to be one with H, W type image dimension")
+
+    # ----------------------------------------
     # 3차원 이미지 처리
     elif len(img.shape) == 3:
-        if (mean.shape[2] != 3) or (std.shape[2] != 3):
+        # mean, value 처리
+        if isinstance(mean, float):
+            mean = [mean] * 3
+        if isinstance(std, float):
+            std = [std] * 3
+
+        mean = np.array(mean).reshape((1, 1, -1))
+        std = np.array(std).reshape((1, 1, -1))
+        if (mean.shape[-1] != 3) or (std.shape[-1] != 3):
             raise ValueError("'mean' or 'std' dimension is not matched with H, W, C type image dimension")
+
+    # -------------------------------------
     else:
         raise ValueError("'img' dimension is {}. Only 2-dimensional or 3-dimensional image is supported".format(len(img.shape)))
 
@@ -44,7 +60,7 @@ def _normalize(img: NumpyArray, mean: _value_2_or_3_t, std: _value_2_or_3_t, eps
 def _to_tensor(img: NumpyArray) -> TensorType:
     # 2차원 이미지라면 3차원의 1차원 채널을 가지도록 바꾼다.
     if len(img.shape) == 2:
-        img = img[..., np.newaxis]
+        img = img[np.newaxis, ...]
     elif len(img.shape) == 3:
         img = np.ascontiguousarray(img.transpose((2, 0, 1)))
     else:

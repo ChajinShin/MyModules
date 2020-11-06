@@ -1,7 +1,7 @@
 from .functions import *
 
 
-__all__ = ['ProcessBar', 'Logger', 'PandasRecorder']
+__all__ = ['ProcessBar', 'Logger', 'CSV_Recorder', 'ElapsedTimeProcess']
 
 
 
